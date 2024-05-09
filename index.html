@@ -1,12 +1,37 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebGPU Ray Tracing</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            color-scheme: dark;
+        }
+
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background-color: #121212;
+        }
+
+        canvas {
+            background-color: #171717;
+        }
+    </style>
 </head>
 <body>
-<div id="app"></div>
+
+<canvas width="800" height="450"></canvas>
+
 <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
