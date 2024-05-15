@@ -1,4 +1,6 @@
-export {};
+import vertexShaderCode from './shaders/vertex.wgsl?raw';
+import fragmentShaderCode from './shaders/fragment.wgsl?raw';
+import { Renderer } from './renderer.ts';
 
 if (!navigator.gpu) {
     throw new Error('WebGPU not supported on this browser.');
@@ -14,30 +16,21 @@ console.log('GPU Adapter Info:', await adapter.requestAdapterInfo());
 const device = await adapter.requestDevice();
 
 const canvas = document.querySelector('canvas')!;
-const context = canvas.getContext('webgpu')!;
+const canvasContext = canvas.getContext('webgpu')!;
 const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
 
-context.configure({
+canvasContext.configure({
     device: device,
     format: canvasFormat,
 });
 
-//
+// ---------------------------------------------------------------------
 
-const commandEncoder = device.createCommandEncoder();
+const renderer = new Renderer(device, canvasContext, canvasFormat, vertexShaderCode, fragmentShaderCode);
 
-const renderPass = commandEncoder.beginRenderPass({
-    colorAttachments: [
-        {
-            view: context.getCurrentTexture().createView(),
-            loadOp: 'clear',
-            storeOp: 'store',
-            clearValue: { r: 1, g: 1, b: 1, a: 1 },
-        },
-    ],
-});
-renderPass.end();
+const renderLoop = (): void => {
+    renderer.render();
+    // requestAnimationFrame(renderLoop);
+};
 
-const commandBuffer = commandEncoder.finish();
-
-device.queue.submit([commandBuffer]);
+renderLoop();
