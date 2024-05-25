@@ -1,6 +1,7 @@
 import vertexShaderCode from './shaders/vertex.wgsl?raw';
 import fragmentShaderCode from './shaders/fragment.wgsl?raw';
 import { Renderer } from './renderer.ts';
+import { ShaderBinding } from './bindGroup.ts';
 
 if (!navigator.gpu) {
     throw new Error('WebGPU not supported on this browser.');
@@ -26,7 +27,33 @@ canvasContext.configure({
 
 // ---------------------------------------------------------------------
 
-const renderer = new Renderer(device, canvasContext, canvasFormat, vertexShaderCode, fragmentShaderCode);
+const shaderBindings: ShaderBinding[] = [
+    // aspectRatio
+    {
+        shaderStage: GPUShaderStage.FRAGMENT,
+        data: new Float32Array([canvas.height / canvas.width]),
+    },
+
+    // cameraLookFrom
+    {
+        shaderStage: GPUShaderStage.FRAGMENT,
+        data: new Float32Array([12, 2, -3]),
+    },
+
+    // cameraLookAt
+    {
+        shaderStage: GPUShaderStage.FRAGMENT,
+        data: new Float32Array([0, 0, 0]),
+    },
+
+    // cameraFov
+    {
+        shaderStage: GPUShaderStage.FRAGMENT,
+        data: new Float32Array([25]),
+    },
+];
+
+const renderer = new Renderer(device, canvasContext, canvasFormat, vertexShaderCode, fragmentShaderCode, shaderBindings);
 
 const renderLoop = (): void => {
     renderer.render();

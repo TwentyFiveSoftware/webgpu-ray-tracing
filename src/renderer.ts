@@ -1,14 +1,29 @@
+import { Buffer } from './buffer.ts';
+import { BindGroup, ShaderBinding } from './bindGroup.ts';
+
 export class Renderer {
     private readonly device: GPUDevice;
     private readonly canvasContext: GPUCanvasContext;
     private readonly vertexBuffer: GPUBuffer;
     private readonly renderPipeline: GPURenderPipeline;
+    private readonly bindGroup: GPUBindGroup;
 
-    constructor(device: GPUDevice, canvasContext: GPUCanvasContext, canvasFormat: GPUTextureFormat, vertexShaderCode: string, fragmentShaderCode: string) {
+    constructor(
+        device: GPUDevice,
+        canvasContext: GPUCanvasContext,
+        canvasFormat: GPUTextureFormat,
+        vertexShaderCode: string,
+        fragmentShaderCode: string,
+        shaderBindings: ShaderBinding[],
+    ) {
         this.device = device;
         this.canvasContext = canvasContext;
+
+        const bindGroupLayout = BindGroup.initializeBindGroupLayout(device, shaderBindings);
+        this.renderPipeline = Renderer.initializeRenderPipeline(device, canvasFormat, bindGroupLayout, vertexShaderCode, fragmentShaderCode);
+        this.bindGroup = BindGroup.initializeBindGroup(device, bindGroupLayout, shaderBindings);
+
         this.vertexBuffer = Renderer.initializeVertexBuffer(device);
-        this.renderPipeline = Renderer.initializeRenderPipeline(device, canvasFormat, vertexShaderCode, fragmentShaderCode);
     }
 
     public render(): void {
@@ -32,6 +47,7 @@ export class Renderer {
         });
 
         renderPass.setPipeline(this.renderPipeline);
+        renderPass.setBindGroup(0, this.bindGroup); // index refers to @binding(0) in shader
         renderPass.setVertexBuffer(0, this.vertexBuffer); // slot refers to vertexBufferLayout index in renderPipeline.vertex.buffers
         renderPass.draw(6);
 
@@ -40,7 +56,13 @@ export class Renderer {
         return commandEncoder.finish();
     }
 
-    private static initializeRenderPipeline(device: GPUDevice, canvasFormat: GPUTextureFormat, vertexShaderCode: string, fragmentShaderCode: string): GPURenderPipeline {
+    private static initializeRenderPipeline(
+        device: GPUDevice,
+        canvasFormat: GPUTextureFormat,
+        bindGroupLayout: GPUBindGroupLayout,
+        vertexShaderCode: string,
+        fragmentShaderCode: string,
+    ): GPURenderPipeline {
         const vertexBufferLayout: GPUVertexBufferLayout = {
             arrayStride: 8, // 2 coordinates (x and y) * 4 bytes (byte size of a float32)
             attributes: [{
@@ -50,8 +72,12 @@ export class Renderer {
             }],
         };
 
+        const pipelineLayout = device.createPipelineLayout({
+            bindGroupLayouts: [bindGroupLayout], // only one element = only @group(0)
+        });
+
         return device.createRenderPipeline({
-            layout: 'auto',
+            layout: pipelineLayout,
             vertex: {
                 module: device.createShaderModule({
                     code: vertexShaderCode,
@@ -85,13 +111,6 @@ export class Renderer {
             -1, 1,
         ]);
 
-        const vertexBuffer = device.createBuffer({
-            size: vertices.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
-        });
-
-        device.queue.writeBuffer(vertexBuffer, 0, vertices);
-
-        return vertexBuffer;
+        return Buffer.initialize(device, Buffer.USAGE_VERTEX, vertices);
     };
 }
