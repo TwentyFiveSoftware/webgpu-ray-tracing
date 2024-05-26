@@ -2,6 +2,7 @@ import vertexShaderCode from './shaders/vertex.wgsl?raw';
 import fragmentShaderCode from './shaders/fragment.wgsl?raw';
 import type { ShaderBinding } from './engine/bindGroup.ts';
 import { Engine } from './engine/engine.ts';
+import { Scene } from './scene.ts';
 
 const canvas = document.querySelector('canvas')!;
 
@@ -39,7 +40,7 @@ const shaderBindings: ShaderBinding[] = [
     {
         shaderStage: GPUShaderStage.FRAGMENT,
         type: 'read-only-storage',
-        data: new Float32Array([0, 0, 0, 0.2]),
+        data: Scene.generateRandomScene().serializeToBytes(),
     },
 ];
 

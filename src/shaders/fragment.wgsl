@@ -85,6 +85,7 @@ struct HitRecord {
 struct Sphere {
     center: vec3<f32>,
     radius: f32,
+    material: Material,
 };
 
 fn rayHitsSphere(sphere: Sphere, ray: Ray, tMin: f32, tMax: f32) -> HitRecord {
@@ -139,4 +140,11 @@ fn rayHitsScene(ray: Ray) -> HitRecord {
     }
 
     return currentHitRecord;
+}
+
+// Material
+struct Material {
+    materialType: u32,
+    textureType: u32,
+    textureAttributes: vec2<f32>,
 }
