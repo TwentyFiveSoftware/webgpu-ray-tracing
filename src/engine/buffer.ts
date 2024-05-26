@@ -1,11 +1,8 @@
 export class Buffer {
-    public static USAGE_VERTEX: GPUBufferUsageFlags = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
-    public static USAGE_UNIFORM: GPUBufferUsageFlags = GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST;
-
     public static initialize(device: GPUDevice, usage: GPUBufferUsageFlags, data: ArrayBuffer): GPUBuffer {
         const buffer = device.createBuffer({
             size: data.byteLength,
-            usage: usage,
+            usage: GPUBufferUsage.COPY_DST | usage,
         });
 
         device.queue.writeBuffer(buffer, 0, data);
@@ -26,6 +23,6 @@ export class Buffer {
             -1, 1,
         ]);
 
-        return Buffer.initialize(device, Buffer.USAGE_VERTEX, vertices);
+        return Buffer.initialize(device, GPUBufferUsage.VERTEX, vertices);
     };
 }

@@ -1,8 +1,9 @@
 import { Buffer } from './buffer.ts';
 
 export interface ShaderBinding {
-    shaderStage: GPUShaderStageFlags,
-    data: ArrayBuffer,
+    shaderStage: GPUShaderStageFlags;
+    type: GPUBufferBindingType;
+    data: ArrayBuffer;
 }
 
 export class BindGroup {
@@ -12,7 +13,7 @@ export class BindGroup {
                 binding: index, // equals to @binding(index) in shader
                 visibility: binding.shaderStage,
                 buffer: {
-                    type: 'uniform',
+                    type: binding.type,
                 },
             })),
         });
@@ -24,7 +25,11 @@ export class BindGroup {
             entries: shaderBindings.map<GPUBindGroupEntry>((binding, index) => ({
                 binding: index, // equals to @binding(index) in shader
                 resource: {
-                    buffer: Buffer.initialize(device, Buffer.USAGE_UNIFORM, binding.data),
+                    buffer: Buffer.initialize(
+                        device,
+                        binding.type == 'uniform' ? GPUBufferUsage.UNIFORM : GPUBufferUsage.STORAGE,
+                        binding.data,
+                    ),
                 },
             })),
         });

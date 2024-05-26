@@ -10,6 +10,7 @@ struct FragmentOutput {
 @group(0) @binding(1) var<uniform> cameraLookFrom: vec3<f32>;
 @group(0) @binding(2) var<uniform> cameraLookAt: vec3<f32>;
 @group(0) @binding(3) var<uniform> cameraFov: f32;
+@group(0) @binding(4) var<storage, read> scene: Scene;
 
 @fragment
 fn fragmentMain(input: FragmentInput) -> FragmentOutput {
@@ -24,8 +25,13 @@ fn fragmentMain(input: FragmentInput) -> FragmentOutput {
 }
 
 fn calculateRayColor(ray: Ray) -> vec3<f32> {
-    let t: f32 = 0.5 * (ray.direction.y + 1);
-    return mix(vec3<f32>(1, 1, 1), vec3<f32>(0.5, 0.7, 1), t);
+    let hitRecord: HitRecord = rayHitsScene(ray);
+    if !hitRecord.doesHit {
+        let t: f32 = (ray.direction.y + 1) / 2;
+        return mix(vec3<f32>(1, 1, 1), vec3<f32>(0.5, 0.7, 1), t);
+    }
+
+    return (hitRecord.hitNormal + 1) / 2;
 }
 
 // Ray
@@ -62,6 +68,75 @@ fn newCamera() -> Camera {
 }
 
 fn getCameraRay(camera: Camera, uv: vec2<f32>) -> Ray {
-    let to: vec3<f32> = camera.upperLeftCorner + camera.horizontalDirection * uv.x + camera.verticalDirection * uv.y;
+    let to: vec3<f32> = camera.upperLeftCorner + camera.horizontalDirection * uv.x - camera.verticalDirection * uv.y;
     return Ray(cameraLookFrom, normalize(to - cameraLookFrom));
+}
+
+// HitRecord
+struct HitRecord {
+    doesHit: bool,
+    rayT: f32,
+    hitPoint: vec3<f32>,
+    hitNormal: vec3<f32>,
+    isFrontFace: bool,
+};
+
+// Sphere
+struct Sphere {
+    center: vec3<f32>,
+    radius: f32,
+};
+
+fn rayHitsSphere(sphere: Sphere, ray: Ray, tMin: f32, tMax: f32) -> HitRecord {
+    let oc: vec3<f32> = ray.origin - sphere.center;
+    let a: f32 = dot(ray.direction, ray.direction);
+    let halfB: f32 = dot(oc, ray.direction);
+    let c: f32 = dot(oc, oc) - sphere.radius * sphere.radius;
+    let discriminant: f32 = halfB * halfB - a * c;
+
+    if discriminant < 0 {
+        return HitRecord();
+    }
+
+    let sqrtD: f32 = sqrt(discriminant);
+
+    var t: f32 = (-halfB - sqrtD) / a;
+    if t < tMin || t > tMax {
+        t = (-halfB + sqrtD) / a;
+
+        if t < tMin || t > tMax {
+            return HitRecord();
+        }
+    }
+
+    let hitPoint: vec3<f32> = rayAt(ray, t);
+    var hitNormal: vec3<f32> = (hitPoint - sphere.center) / sphere.radius;
+    let isFrontFace: bool = dot(ray.direction, hitNormal) < 0;
+
+    if !isFrontFace {
+        hitNormal = -hitNormal;
+    }
+
+    return HitRecord(true, t, hitPoint, hitNormal, isFrontFace);
+}
+
+// Scene
+struct Scene {
+    spheres: array<Sphere>,
+}
+
+fn rayHitsScene(ray: Ray) -> HitRecord {
+    var currentHitRecord: HitRecord = HitRecord();
+    var maxT: f32 = 0x1p+127f;
+
+    let sphereCount: u32 = arrayLength(&scene.spheres);
+    for (var i: u32 = 0; i < sphereCount; i++) {
+        let hitRecord: HitRecord = rayHitsSphere(scene.spheres[i], ray, 0.001, maxT);
+        if hitRecord.doesHit {
+            currentHitRecord = hitRecord;
+            maxT = hitRecord.rayT;
+        }
+    }
+
+    return currentHitRecord;
 }

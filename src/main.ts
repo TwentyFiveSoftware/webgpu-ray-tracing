@@ -9,25 +9,37 @@ const shaderBindings: ShaderBinding[] = [
     // aspectRatio
     {
         shaderStage: GPUShaderStage.FRAGMENT,
-        data: new Float32Array([canvas.height / canvas.width]),
+        type: 'uniform',
+        data: new Float32Array([canvas.width / canvas.height]),
     },
 
     // cameraLookFrom
     {
         shaderStage: GPUShaderStage.FRAGMENT,
-        data: new Float32Array([12, 2, -3]),
+        type: 'uniform',
+        // data: new Float32Array([12, 2, -3]),
+        data: new Float32Array([0, 0, -1]),
     },
 
     // cameraLookAt
     {
         shaderStage: GPUShaderStage.FRAGMENT,
+        type: 'uniform',
         data: new Float32Array([0, 0, 0]),
     },
 
     // cameraFov
     {
         shaderStage: GPUShaderStage.FRAGMENT,
+        type: 'uniform',
         data: new Float32Array([25]),
+    },
+
+    // scene
+    {
+        shaderStage: GPUShaderStage.FRAGMENT,
+        type: 'read-only-storage',
+        data: new Float32Array([0, 0, 0, 0.2]),
     },
 ];
 

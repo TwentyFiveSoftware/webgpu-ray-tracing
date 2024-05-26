@@ -11,6 +11,6 @@ struct VertexOutput {
 fn vertexMain(input: VertexInput) -> VertexOutput {
     var output: VertexOutput;
     output.position = vec4<f32>(input.vertex_position, 0, 1);
-    output.uv = input.vertex_position + 1;
+    output.uv = vec2<f32>(input.vertex_position.x + 1, -input.vertex_position.y + 1) / 2;
     return output;
 }
