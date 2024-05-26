@@ -168,3 +168,29 @@ class Vector3 {
         return buffer;
     }
 }
+
+export class RenderCallInfo {
+    private readonly width: number;
+    private readonly height: number;
+    private readonly maxRayTraceDepth: number;
+    private readonly samplesPerComputePass: number;
+    private alreadyComputedSamples: number = 0;
+
+    constructor(width: number, height: number, maxRayTraceDepth: number, samplesPerComputePass: number, alreadyComputedSample: number = 0) {
+        this.width = width;
+        this.height = height;
+        this.maxRayTraceDepth = maxRayTraceDepth;
+        this.samplesPerComputePass = samplesPerComputePass;
+        this.alreadyComputedSamples = alreadyComputedSample;
+    }
+
+    public incrementAlreadyComputeSamples(increase: number) {
+        this.alreadyComputedSamples += increase;
+    }
+
+    public serializeToBytes(): ArrayBuffer {
+        const buffer = new ArrayBuffer(20);
+        new Uint32Array(buffer).set([this.width, this.height, this.maxRayTraceDepth, this.samplesPerComputePass, this.alreadyComputedSamples], 0);
+        return buffer;
+    }
+}
