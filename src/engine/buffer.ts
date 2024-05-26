@@ -11,4 +11,21 @@ export class Buffer {
         device.queue.writeBuffer(buffer, 0, data);
         return buffer;
     }
+
+    public static initializeRectangleVertexBuffer(device: GPUDevice): GPUBuffer {
+        // rectangle with the size same size as the viewport
+        const vertices = new Float32Array([
+            // triangle 1
+            -1, -1,
+            1, -1,
+            1, 1,
+
+            // triangle 2
+            -1, -1,
+            1, 1,
+            -1, 1,
+        ]);
+
+        return Buffer.initialize(device, Buffer.USAGE_VERTEX, vertices);
+    };
 }
