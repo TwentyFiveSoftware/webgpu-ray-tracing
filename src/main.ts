@@ -4,14 +4,23 @@ import type { ShaderBinding } from './engine/bindGroup.ts';
 import { Engine } from './engine/engine.ts';
 import { Scene } from './scene.ts';
 
-const canvas = document.querySelector('canvas')!;
+const WIDTH = 1920;
+const HEIGHT = 1080;
+const SAMPLES_PER_PIXEL = 10;
 
 const shaderBindings: ShaderBinding[] = [
+    // samplesPerPixel
+    {
+        shaderStage: GPUShaderStage.FRAGMENT,
+        type: 'uniform',
+        data: new Uint32Array([SAMPLES_PER_PIXEL]),
+    },
+
     // aspectRatio
     {
         shaderStage: GPUShaderStage.FRAGMENT,
         type: 'uniform',
-        data: new Float32Array([canvas.width / canvas.height]),
+        data: new Float32Array([WIDTH / HEIGHT]),
     },
 
     // cameraLookFrom
@@ -43,11 +52,21 @@ const shaderBindings: ShaderBinding[] = [
     },
 ];
 
+const canvas = document.querySelector('canvas')!;
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
+
 const engine = await Engine.initialize(canvas, vertexShaderCode, fragmentShaderCode, shaderBindings);
 
-const renderLoop = (): void => {
-    engine.render();
+const renderLoop = async (): Promise<void> => {
+    const renderStartTime: number = Date.now();
+
+    await engine.render();
+
+    const renderFinishTime: number = Date.now();
+    console.log(`rendered ${SAMPLES_PER_PIXEL} samples/pixel in ${renderFinishTime - renderStartTime} ms`);
+
     // requestAnimationFrame(renderLoop);
 };
 
-renderLoop();
+await renderLoop();

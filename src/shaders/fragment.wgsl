@@ -7,11 +7,12 @@ struct FragmentOutput {
      @location(0) pixelColor: vec4<f32>,
 }
 
-@group(0) @binding(0) var<uniform> aspectRatio: f32;
-@group(0) @binding(1) var<uniform> cameraLookFrom: vec3<f32>;
-@group(0) @binding(2) var<uniform> cameraLookAt: vec3<f32>;
-@group(0) @binding(3) var<uniform> cameraFov: f32;
-@group(0) @binding(4) var<storage, read> scene: Scene;
+@group(0) @binding(0) var<uniform> samplesPerPixel: u32;
+@group(0) @binding(1) var<uniform> aspectRatio: f32;
+@group(0) @binding(2) var<uniform> cameraLookFrom: vec3<f32>;
+@group(0) @binding(3) var<uniform> cameraLookAt: vec3<f32>;
+@group(0) @binding(4) var<uniform> cameraFov: f32;
+@group(0) @binding(5) var<storage, read> scene: Scene;
 
 const MAX_RAY_TRACE_DEPTH: u32 = 50;
 
@@ -21,8 +22,14 @@ fn fragmentMain(input: FragmentInput) -> FragmentOutput {
 
     let camera: Camera = newCamera();
 
-    let ray: Ray = getCameraRay(camera, input.uv);
-    let pixel_color: vec3<f32> = calculateRayColor(ray);
+    var summedPixelColor: vec3<f32> = vec3<f32>(0);
+
+    for (var currentSample: u32 = 0; currentSample < samplesPerPixel; currentSample++) {
+        let ray: Ray = getCameraRay(camera, input.uv);
+        summedPixelColor += calculateRayColor(ray);
+    }
+
+    let pixel_color: vec3<f32> = summedPixelColor / f32(samplesPerPixel);
 
     var output: FragmentOutput;
     output.pixelColor = vec4<f32>(sqrt(pixel_color), 1);

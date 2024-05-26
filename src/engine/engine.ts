@@ -64,10 +64,11 @@ export class Engine {
         this.bindGroup = bindGroup;
     }
 
-    public render(): void {
+    public async render(): Promise<void> {
         const canvasTexture = this.canvasContext.getCurrentTexture();
         const renderPassCommandBuffer = this.encodeRenderPass(canvasTexture);
         this.device.queue.submit([renderPassCommandBuffer]);
+        await this.device.queue.onSubmittedWorkDone();
     }
 
     private encodeRenderPass(canvasTexture: GPUTexture): GPUCommandBuffer {
