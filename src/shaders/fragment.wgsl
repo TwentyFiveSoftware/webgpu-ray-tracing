@@ -192,9 +192,10 @@ fn scatter(material: Material, ray: Ray, hitRecord: HitRecord) -> ScatterRecord 
         return scatterDiffuseMaterial(material, hitRecord);
 
     } else if material.materialType == MATERIAL_TYPE_METAL {
+        return scatterMetalMaterial(material, ray, hitRecord);
 
     } else if material.materialType == MATERIAL_TYPE_DIELECTRIC {
-
+        return scatterMetalDielectric(material, ray, hitRecord);
     }
 
     return ScatterRecord();
@@ -207,6 +208,26 @@ fn scatterDiffuseMaterial(material: Material, hitRecord: HitRecord) -> ScatterRe
     }
 
     return ScatterRecord(true, getTextureColor(material, hitRecord.hitPoint), scatterDirection);
+}
+
+fn scatterMetalMaterial(material: Material, ray: Ray, hitRecord: HitRecord) -> ScatterRecord {
+    let scatterDirection: vec3<f32> = reflect(ray.direction, hitRecord.hitNormal);
+    if dot(scatterDirection, hitRecord.hitNormal) <= 0 {
+        return ScatterRecord();
+    }
+
+    return ScatterRecord(true, getTextureColor(material, hitRecord.hitPoint), scatterDirection);
+}
+
+fn scatterMetalDielectric(material: Material, ray: Ray, hitRecord: HitRecord) -> ScatterRecord {
+    var refractionRatio: f32 = material.refractionIndex;
+    if hitRecord.isFrontFace {
+        refractionRatio = 1 / material.refractionIndex;
+    }
+
+    let scatterDirection: vec3<f32> = refract(ray.direction, hitRecord.hitNormal, refractionRatio);
+
+    return ScatterRecord(true, vec3<f32>(1), scatterDirection);
 }
 
 fn getTextureColor(material: Material, pointToSample: vec3<f32>) -> vec3<f32> {
