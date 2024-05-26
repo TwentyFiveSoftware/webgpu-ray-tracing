@@ -10,7 +10,7 @@ export class Scene {
             new Sphere(new Vector3(0, 0, 0), 0.5,
                 new Material(0, 0, 0, new Vector3(1, 0, 0), new Vector3(0, 0, 0))),
             new Sphere(new Vector3(0, -1000.5, 0), 1000,
-                new Material(0, 0, 0, new Vector3(0.3, 0.3, 0.3), new Vector3(0, 0, 0))),
+                new Material(0, 1, 0, new Vector3(0.05, 0.05, 0.05), new Vector3(0.95, 0.95, 0.95))),
         ];
 
         return new Scene(spheres);

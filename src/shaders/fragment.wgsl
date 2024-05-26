@@ -13,6 +13,8 @@ struct FragmentOutput {
 @group(0) @binding(3) var<uniform> cameraFov: f32;
 @group(0) @binding(4) var<storage, read> scene: Scene;
 
+const MAX_RAY_TRACE_DEPTH: u32 = 50;
+
 @fragment
 fn fragmentMain(input: FragmentInput) -> FragmentOutput {
     initRandom(input.fragmentPosition.xy);
@@ -23,23 +25,35 @@ fn fragmentMain(input: FragmentInput) -> FragmentOutput {
     let pixel_color: vec3<f32> = calculateRayColor(ray);
 
     var output: FragmentOutput;
-    output.pixelColor = vec4<f32>(pixel_color, 1);
+    output.pixelColor = vec4<f32>(sqrt(pixel_color), 1);
     return output;
 }
 
 fn calculateRayColor(ray: Ray) -> vec3<f32> {
-    let hitRecord: HitRecord = rayHitsScene(ray);
-    if !hitRecord.doesHit {
-        let t: f32 = (ray.direction.y + 1) / 2;
-        return mix(vec3<f32>(1, 1, 1), vec3<f32>(0.5, 0.7, 1), t);
+    var reflectedColor: vec3<f32> = vec3<f32>(1);
+    var lightSourceColor: vec3<f32> = vec3<f32>(0);
+
+    var currentRay: Ray = ray;
+
+    for (var depth: u32 = 0; depth < MAX_RAY_TRACE_DEPTH; depth++) {
+        let hitRecord: HitRecord = rayHitsScene(currentRay);
+        if !hitRecord.doesHit {
+            let t: f32 = (currentRay.direction.y + 1) / 2;
+            lightSourceColor = mix(vec3<f32>(1, 1, 1), vec3<f32>(0.5, 0.7, 1), t);
+            break;
+        }
+
+        let scatterRecord: ScatterRecord = scatter(hitRecord.material, currentRay, hitRecord);
+        if !scatterRecord.doesScatter {
+            lightSourceColor = vec3<f32>(0);
+            break;
+        }
+
+        reflectedColor *= scatterRecord.attenuation;
+        currentRay = Ray(hitRecord.hitPoint, scatterRecord.scatterDirection);
     }
 
-    let scatterRecord: ScatterRecord = scatter(hitRecord.material, ray, hitRecord);
-    if scatterRecord.doesScatter {
-        return scatterRecord.attenuation;
-    }
-
-    return (hitRecord.hitNormal + 1) / 2;
+    return reflectedColor * lightSourceColor;
 }
 
 // Ray
@@ -200,7 +214,13 @@ fn getTextureColor(material: Material, pointToSample: vec3<f32>) -> vec3<f32> {
         return material.colors[0];
 
     } else if material.textureType == TEXTURE_TYPE_CHECKERED {
+        const size = 6;
 
+        if sin(size * pointToSample.x) * sin(size * pointToSample.y) * sin(size * pointToSample.z) > 0 {
+            return material.colors[0];
+        } else {
+            return material.colors[1];
+        }
     }
 
     return vec3<f32>();
