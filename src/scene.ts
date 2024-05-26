@@ -6,14 +6,63 @@ export class Scene {
     }
 
     public static generateRandomScene(): Scene {
-        const spheres: Sphere[] = [
-            new Sphere(new Vector3(0, 0, 0), 0.5,
-                new Material(0, 0, 0, new Vector3(1, 0, 0), new Vector3(0, 0, 0))),
-            new Sphere(new Vector3(0, -1000.5, 0), 1000,
-                new Material(0, 1, 0, new Vector3(0.05, 0.05, 0.05), new Vector3(0.95, 0.95, 0.95))),
-        ];
+        const spheres: Sphere[] = [];
+
+        for (let x = -11; x < 11; x++) {
+            for (let z = -11; z < 11; z++) {
+                let material: Material;
+
+                let materialRandom = Math.random();
+                if (materialRandom < 0.8) {
+                    material = Material.solidDiffuse(Scene.getRandomColor());
+                } else if (materialRandom < 0.95) {
+                    material = Material.solidMetal(Scene.getRandomColor());
+                } else {
+                    material = Material.dielectric(1.5);
+                }
+
+                const center: Vector3 = new Vector3(x + Math.random() * 0.9, 0.2, z + Math.random() * 0.9);
+
+                spheres.push(new Sphere(center, 0.2, material));
+            }
+        }
+
+        // GROUND
+        spheres.push(new Sphere(new Vector3(0, -1000, 0), 1000,
+            Material.checkeredDiffuse(new Vector3(0.05, 0.05, 0.05), new Vector3(0.95, 0.95, 0.95))));
+
+        // LEFT
+        spheres.push(new Sphere(new Vector3(-4, 1, 0), 1, Material.solidDiffuse(new Vector3(0.6, 0.3, 0.1))));
+
+        // CENTER
+        spheres.push(new Sphere(new Vector3(0, 1, 0), 1, Material.dielectric(1.5)));
+
+        // RIGHT
+        spheres.push(new Sphere(new Vector3(4, 1, 0), 1, Material.solidMetal(new Vector3(0.7, 0.6, 0.5))));
 
         return new Scene(spheres);
+    }
+
+    private static getRandomColor(): Vector3 {
+        return Scene.hsvToRgb(Math.random() * 360, 0.75, 0.45);
+    }
+
+    private static hsvToRgb(hue: number, s: number, v: number): Vector3 {
+        const h: number = hue / 60;
+        const fraction: number = h - Math.floor(h);
+
+        const p: number = v * (1 - s);
+        const q: number = v * (1 - s * fraction);
+        const t: number = v * (1 - s * (1 - fraction));
+
+        if (0 <= h && h < 1) return new Vector3(v, t, p);
+        else if (1 <= h && h < 2) return new Vector3(q, v, p);
+        else if (2 <= h && h < 3) return new Vector3(p, v, t);
+        else if (3 <= h && h < 4) return new Vector3(p, q, v);
+        else if (4 <= h && h < 5) return new Vector3(t, p, v);
+        else if (5 <= h && h < 6) return new Vector3(v, p, q);
+
+        return new Vector3(0, 0, 0);
     }
 
     public serializeToBytes(): ArrayBuffer {
@@ -51,6 +100,13 @@ class Sphere {
 }
 
 class Material {
+    public static MATERIAL_TYPE_DIFFUSE = 0;
+    public static MATERIAL_TYPE_METAL = 1;
+    public static MATERIAL_TYPE_DIELECTRIC = 2;
+
+    public static TEXTURE_TYPE_SOLID = 0;
+    public static TEXTURE_TYPE_CHECKERED = 1;
+
     private readonly materialType: number;
     private readonly textureType: number;
     private readonly refractionIndex: number;
@@ -63,6 +119,22 @@ class Material {
         this.refractionIndex = refractionIndex;
         this.color1 = color1;
         this.color2 = color2;
+    }
+
+    public static solidDiffuse(color: Vector3): Material {
+        return new Material(Material.MATERIAL_TYPE_DIFFUSE, Material.TEXTURE_TYPE_SOLID, 0, color, new Vector3(0, 0, 0));
+    }
+
+    public static checkeredDiffuse(color1: Vector3, color2: Vector3): Material {
+        return new Material(Material.MATERIAL_TYPE_DIFFUSE, Material.TEXTURE_TYPE_CHECKERED, 0, color1, color2);
+    }
+
+    public static solidMetal(color: Vector3): Material {
+        return new Material(Material.MATERIAL_TYPE_METAL, Material.MATERIAL_TYPE_DIFFUSE, 0, color, new Vector3(0, 0, 0));
+    }
+
+    public static dielectric(refractionIndex: number): Material {
+        return new Material(Material.MATERIAL_TYPE_DIELECTRIC, 0, refractionIndex, new Vector3(0, 0, 0), new Vector3(0, 0, 0));
     }
 
     public serializeToBytes(): ArrayBuffer {

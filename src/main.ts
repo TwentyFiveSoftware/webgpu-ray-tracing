@@ -19,7 +19,6 @@ const shaderBindings: ShaderBinding[] = [
         shaderStage: GPUShaderStage.FRAGMENT,
         type: 'uniform',
         data: new Float32Array([12, 2, -3]),
-        // data: new Float32Array([0, 0, -4]),
     },
 
     // cameraLookAt
