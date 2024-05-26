@@ -8,19 +8,17 @@ struct FragmentOutput {
 }
 
 @group(0) @binding(0) var<uniform> samplesPerPixel: u32;
-@group(0) @binding(1) var<uniform> aspectRatio: f32;
-@group(0) @binding(2) var<uniform> cameraLookFrom: vec3<f32>;
-@group(0) @binding(3) var<uniform> cameraLookAt: vec3<f32>;
-@group(0) @binding(4) var<uniform> cameraFov: f32;
-@group(0) @binding(5) var<storage, read> scene: Scene;
+@group(0) @binding(1) var<storage, read> scene: Scene;
 
+const WIDTH: u32 = 800;
+const HEIGHT: u32 = 450;
 const MAX_RAY_TRACE_DEPTH: u32 = 50;
 
 @fragment
 fn fragmentMain(input: FragmentInput) -> FragmentOutput {
     initRandom(input.fragmentPosition.xy);
 
-    let camera: Camera = newCamera();
+    let camera: Camera = newCamera(vec3<f32>(12, 2, -3), vec3<f32>(0), 25);
 
     var summedPixelColor: vec3<f32> = vec3<f32>(0);
 
@@ -75,30 +73,33 @@ fn rayAt(ray: Ray, t: f32) -> vec3<f32> {
 
 // Camera
 struct Camera {
+    lookFrom: vec3<f32>,
     upperLeftCorner: vec3<f32>,
     horizontalDirection: vec3<f32>,
     verticalDirection: vec3<f32>,
 };
 
-fn newCamera() -> Camera {
-    let viewportHeight: f32 = tan(radians(cameraFov) / 2) * 2;
+fn newCamera(lookFrom: vec3<f32>, lookAt: vec3<f32>, fov: f32) -> Camera {
+    let aspectRatio: f32 = f32(WIDTH) / f32(HEIGHT);
+
+    let viewportHeight: f32 = tan(radians(fov) / 2) * 2;
     let viewportWidth: f32 = aspectRatio * viewportHeight;
 
-    let forward: vec3<f32> = normalize(cameraLookAt - cameraLookFrom);
+    let forward: vec3<f32> = normalize(lookAt - lookFrom);
     let right: vec3<f32> = normalize(cross(vec3<f32>(0, 1, 0), forward));
     let up: vec3<f32> = normalize(cross(forward, right));
 
     let horizontalDirection: vec3<f32> = viewportWidth * right;
     let verticalDirection: vec3<f32> = viewportHeight * up;
 
-    let upperLeftCorner: vec3<f32> = cameraLookFrom - horizontalDirection / 2 + verticalDirection / 2 + forward;
+    let upperLeftCorner: vec3<f32> = lookFrom - horizontalDirection / 2 + verticalDirection / 2 + forward;
 
-    return Camera(upperLeftCorner, horizontalDirection, verticalDirection);
+    return Camera(lookFrom, upperLeftCorner, horizontalDirection, verticalDirection);
 }
 
 fn getCameraRay(camera: Camera, uv: vec2<f32>) -> Ray {
     let to: vec3<f32> = camera.upperLeftCorner + camera.horizontalDirection * uv.x - camera.verticalDirection * uv.y;
-    return Ray(cameraLookFrom, normalize(to - cameraLookFrom));
+    return Ray(camera.lookFrom, normalize(to - camera.lookFrom));
 }
 
 // HitRecord

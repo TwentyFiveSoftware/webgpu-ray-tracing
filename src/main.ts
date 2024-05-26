@@ -4,9 +4,7 @@ import type { ShaderBinding } from './engine/bindGroup.ts';
 import { Engine } from './engine/engine.ts';
 import { Scene } from './scene.ts';
 
-const WIDTH = 1920;
-const HEIGHT = 1080;
-const SAMPLES_PER_PIXEL = 10;
+const SAMPLES_PER_PIXEL = 1;
 
 const shaderBindings: ShaderBinding[] = [
     // samplesPerPixel
@@ -14,34 +12,6 @@ const shaderBindings: ShaderBinding[] = [
         shaderStage: GPUShaderStage.FRAGMENT,
         type: 'uniform',
         data: new Uint32Array([SAMPLES_PER_PIXEL]),
-    },
-
-    // aspectRatio
-    {
-        shaderStage: GPUShaderStage.FRAGMENT,
-        type: 'uniform',
-        data: new Float32Array([WIDTH / HEIGHT]),
-    },
-
-    // cameraLookFrom
-    {
-        shaderStage: GPUShaderStage.FRAGMENT,
-        type: 'uniform',
-        data: new Float32Array([12, 2, -3]),
-    },
-
-    // cameraLookAt
-    {
-        shaderStage: GPUShaderStage.FRAGMENT,
-        type: 'uniform',
-        data: new Float32Array([0, 0, 0]),
-    },
-
-    // cameraFov
-    {
-        shaderStage: GPUShaderStage.FRAGMENT,
-        type: 'uniform',
-        data: new Float32Array([25]),
     },
 
     // scene
@@ -53,8 +23,6 @@ const shaderBindings: ShaderBinding[] = [
 ];
 
 const canvas = document.querySelector('canvas')!;
-canvas.width = WIDTH;
-canvas.height = HEIGHT;
 
 const engine = await Engine.initialize(canvas, vertexShaderCode, fragmentShaderCode, shaderBindings);
 
