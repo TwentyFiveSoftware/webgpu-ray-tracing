@@ -4,16 +4,26 @@ import computeShaderCode from './shaders/compute.wgsl?raw';
 import { Engine } from './engine/engine.ts';
 import { Scene, RenderCallInfo } from './scene.ts';
 
-
-const WIDTH = 800;
-const HEIGHT = 450;
+// SETTINGS
+const WIDTH = 1920;
+const HEIGHT = 1080;
 const MAX_RAY_TRACE_DEPTH = 50;
 const SAMPLES_PER_PIXEL = 100;
 const SAMPLES_PER_COMPUTE_PASS = 1;
 
+// DOM
+const consoleElement = document.querySelector('pre')!;
 
 const canvas = document.querySelector('canvas')!;
+canvas.width = canvas.clientWidth;
+canvas.height = canvas.clientHeight;
 
+const logMessage = (message: string): void => {
+    console.log(message);
+    consoleElement.appendChild(document.createTextNode(message + '\n'));
+};
+
+// ENGINE
 const engine = await Engine.initialize(canvas);
 
 const rayTracingTextures = [
@@ -66,20 +76,25 @@ const computePassBindGroups = [[0, 1], [1, 0]].map(([sourceTextureIndex, targetT
 const requiredComputePassCount = Math.ceil(SAMPLES_PER_PIXEL / SAMPLES_PER_COMPUTE_PASS);
 let totalComputePassTime = 0;
 
-for (let i = 0; i < requiredComputePassCount; ++i) {
+for (let i = 1; i <= requiredComputePassCount; ++i) {
     renderCallInfo.incrementAlreadyComputeSamples(SAMPLES_PER_COMPUTE_PASS);
     engine.updateBufferData(renderCallInfoBuffer, renderCallInfo.serializeToBytes());
 
     const computePassStartTime: number = Date.now();
 
-    const COMPUTE_PASS_WORKGROUP_SIZE = 2; // has no match the @workgroup_size in compute shader
-    await engine.submit(engine.encodeComputePass(computePipeline, computePassBindGroups[i % 2], Math.ceil(WIDTH / COMPUTE_PASS_WORKGROUP_SIZE), Math.ceil(HEIGHT / COMPUTE_PASS_WORKGROUP_SIZE)));
+    const COMPUTE_PASS_WORKGROUP_SIZE = 8; // has to match the @workgroup_size in compute shader
+    await engine.submit(engine.encodeComputePass(computePipeline, computePassBindGroups[i % 2],
+        Math.ceil(WIDTH / COMPUTE_PASS_WORKGROUP_SIZE), Math.ceil(HEIGHT / COMPUTE_PASS_WORKGROUP_SIZE)));
 
     const computePassDuration: number = Date.now() - computePassStartTime;
     totalComputePassTime += computePassDuration;
-    console.log(`[${i + 1} / ${requiredComputePassCount}] rendered ${SAMPLES_PER_COMPUTE_PASS} samples/pixel in ${computePassDuration} ms`);
+
+    logMessage('[' + i.toString().padStart(SAMPLES_PER_PIXEL.toString().length - 1, ' ') + `/${requiredComputePassCount} | `
+        + (i * 100 / requiredComputePassCount).toFixed(1).padStart(5, ' ') + '%] '
+        + `Rendered ${SAMPLES_PER_COMPUTE_PASS} samples/pixel in ${computePassDuration} ms`);
 
     await engine.submit(engine.encodeRenderPass(renderPipeline, renderPassBindGroups[i % 2], vertexBuffer));
 }
 
-console.log(`rendered ${requiredComputePassCount * SAMPLES_PER_COMPUTE_PASS} samples/pixel in ${totalComputePassTime} ms`);
+logMessage(`\n=> Rendered ${WIDTH}x${HEIGHT} image with ${requiredComputePassCount * SAMPLES_PER_COMPUTE_PASS} samples/pixel ` +
+    `in ${totalComputePassTime} ms (mean ${totalComputePassTime / SAMPLES_PER_PIXEL} ms / sample)`);

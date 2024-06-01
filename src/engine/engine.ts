@@ -7,7 +7,10 @@ export class Engine {
     private readonly canvasFormat: GPUTextureFormat;
 
     public static async initialize(canvas: HTMLCanvasElement): Promise<Engine> {
-        const device = await Engine.getGPUDevice();
+        const device = await Engine.getGPUDevice().catch(err => {
+            alert(err);
+            throw err;
+        });
 
         const canvasContext = canvas.getContext('webgpu')!;
         const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
@@ -22,15 +25,18 @@ export class Engine {
 
     private static async getGPUDevice(): Promise<GPUDevice> {
         if (!navigator.gpu) {
-            throw new Error('WebGPU not supported on this browser.');
+            throw new Error('WebGPU not supported on this browser');
         }
 
         const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
         if (!adapter) {
-            throw new Error('No appropriate GPUAdapter found.');
+            throw new Error('No appropriate GPUAdapter found (probably WebGPU is disabled)');
         }
 
-        console.log('GPU Adapter Info:', await adapter.requestAdapterInfo());
+        console.log((await adapter.requestAdapterInfo()));
+        console.log(adapter.toString());
+        console.log(adapter.limits);
+        console.log([...adapter.features]);
 
         return await adapter.requestDevice();
     }

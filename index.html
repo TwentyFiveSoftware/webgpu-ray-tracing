@@ -17,20 +17,40 @@
         }
 
         body {
-            min-height: 100vh;
-            display: grid;
-            place-items: center;
             background-color: #121212;
+            padding: 5%;
+            display: grid;
+            gap: 40px;
         }
 
         canvas {
+            display: block;
             background-color: #171717;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            border-radius: 20px;
+        }
+
+        pre {
+            width: 100%;
+            min-height: 300px;
+            height: 30vh;
+            white-space: pre-wrap;
+            background-color: #171717;
+            padding: 20px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
 
-<canvas width="800" height="450"></canvas>
+<canvas></canvas>
+
+<pre></pre>
 
 <script type="module" src="/src/main.ts"></script>
 </body>
