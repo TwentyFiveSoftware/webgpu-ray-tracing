@@ -1,6 +1,5 @@
 import { RenderPipeline } from './renderPipeline.ts';
 import { ComputePipeline } from './computePipeline.ts';
-import { BindGroup, ShaderBinding } from './bindGroup.ts';
 
 export class Engine {
     private readonly device: GPUDevice;
@@ -109,19 +108,19 @@ export class Engine {
         this.device.queue.writeBuffer(buffer, 0, data);
     }
 
-    public initializeRenderPipeline(bindGroupLayout: GPUBindGroupLayout, vertexShaderCode: string, fragmentShaderCode: string): GPURenderPipeline {
+    public createRenderPipeline(bindGroupLayout: GPUBindGroupLayout, vertexShaderCode: string, fragmentShaderCode: string): GPURenderPipeline {
         return RenderPipeline.initializeRenderPipeline(this.device, this.canvasFormat, bindGroupLayout, vertexShaderCode, fragmentShaderCode);
     }
 
-    public initializeComputePipeline(bindGroupLayout: GPUBindGroupLayout, computeShaderCode: string): GPUComputePipeline {
+    public createComputePipeline(bindGroupLayout: GPUBindGroupLayout, computeShaderCode: string): GPUComputePipeline {
         return ComputePipeline.initializeComputePipeline(this.device, bindGroupLayout, computeShaderCode);
     }
 
-    public initializeBindGroupLayout(shaderBindings: ShaderBinding[]): GPUBindGroupLayout {
-        return BindGroup.initializeBindGroupLayout(this.device, shaderBindings);
+    public createBindGroupLayout(entries: GPUBindGroupLayoutEntry[]): GPUBindGroupLayout {
+        return this.device.createBindGroupLayout({ entries });
     }
 
-    public initializeBindGroup(shaderBindings: ShaderBinding[], bindGroupLayout: GPUBindGroupLayout): GPUBindGroup {
-        return BindGroup.initializeBindGroup(this.device, shaderBindings, bindGroupLayout);
+    public createBindGroup(layout: GPUBindGroupLayout, entries: GPUBindGroupEntry[]): GPUBindGroup {
+        return this.device.createBindGroup({ layout, entries });
     }
 }

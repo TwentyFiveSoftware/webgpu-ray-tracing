@@ -1,7 +1,6 @@
 import vertexShaderCode from './shaders/vertex.wgsl?raw';
 import fragmentShaderCode from './shaders/fragment.wgsl?raw';
 import computeShaderCode from './shaders/compute.wgsl?raw';
-import { ShaderBinding } from './engine/bindGroup.ts';
 import { Engine } from './engine/engine.ts';
 import { Scene, RenderCallInfo } from './scene.ts';
 
@@ -27,99 +26,42 @@ const renderCallInfo = new RenderCallInfo(WIDTH, HEIGHT, MAX_RAY_TRACE_DEPTH, SA
 const renderCallInfoBuffer = engine.initializeBuffer(GPUBufferUsage.UNIFORM, renderCallInfo.serializeToBytes());
 const sceneBuffer = engine.initializeBuffer(GPUBufferUsage.STORAGE, Scene.generateRandomScene().serializeToBytes());
 
-const buildRenderPipelineShaderBindings = (rayTracingTexture: GPUTexture): ShaderBinding[] => {
-    return [
-        {
-            bindingIndex: 0,
-            shaderStage: GPUShaderStage.FRAGMENT,
-            type: 'buffer',
-            buffer: {
-                buffer: renderCallInfoBuffer,
-                bindingType: 'uniform',
-            },
-        },
-        {
-            bindingIndex: 1,
-            shaderStage: GPUShaderStage.FRAGMENT,
-            type: 'storageTexture',
-            storageTexture: {
-                texture: rayTracingTexture,
-                access: 'read-only',
-            },
-        },
-    ];
-};
+const renderPipelineBindGroupEntries: GPUBindGroupLayoutEntry[] = [
+    { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+    { binding: 1, visibility: GPUShaderStage.FRAGMENT, storageTexture: { access: 'read-only', format: 'rgba32float' } },
+];
 
-const buildComputePipelineShaderBindings = (sourceRayTracingTexture: GPUTexture, targetRayTracingTexture: GPUTexture): ShaderBinding[] => {
-    return [
-        {
-            bindingIndex: 0,
-            shaderStage: GPUShaderStage.COMPUTE,
-            type: 'buffer',
-            buffer: {
-                buffer: renderCallInfoBuffer,
-                bindingType: 'uniform',
-            },
-        },
-        {
-            bindingIndex: 1,
-            shaderStage: GPUShaderStage.COMPUTE,
-            type: 'buffer',
-            buffer: {
-                buffer: sceneBuffer,
-                bindingType: 'read-only-storage',
-            },
-        },
-        {
-            bindingIndex: 2,
-            shaderStage: GPUShaderStage.COMPUTE,
-            type: 'storageTexture',
-            storageTexture: {
-                texture: sourceRayTracingTexture,
-                access: 'read-only',
-            },
-        },
-        {
-            bindingIndex: 3,
-            shaderStage: GPUShaderStage.COMPUTE,
-            type: 'storageTexture',
-            storageTexture: {
-                texture: targetRayTracingTexture,
-                access: 'write-only',
-            },
-        },
-    ];
-};
+const computePipelineBindGroupEntries: GPUBindGroupLayoutEntry[] = [
+    { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+    { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+    { binding: 2, visibility: GPUShaderStage.COMPUTE, storageTexture: { access: 'read-only', format: 'rgba32float' } },
+    { binding: 3, visibility: GPUShaderStage.COMPUTE, storageTexture: { access: 'write-only', format: 'rgba32float' } },
+];
 
 const vertexBuffer = engine.initializeBuffer(GPUBufferUsage.VERTEX,
-    // rectangle with the size same size as the viewport
+    // rectangle with the size same size as the viewport (coordinates equal clip-space coordinates)
     new Float32Array([
-        // triangle 1
-        -1, -1,
-        1, -1,
-        1, 1,
-
-        // triangle 2
-        -1, -1,
-        1, 1,
-        -1, 1,
+        -1, -1, 1, -1, 1, 1, // triangle 1
+        -1, -1, 1, 1, -1, 1, // triangle 2
     ]),
 );
 
-const renderPipelineBindGroupLayout = engine.initializeBindGroupLayout(buildRenderPipelineShaderBindings(rayTracingTextures[0]));
-const renderPipeline = engine.initializeRenderPipeline(renderPipelineBindGroupLayout, vertexShaderCode, fragmentShaderCode);
-const renderPassBindGroups = [
-    engine.initializeBindGroup(buildRenderPipelineShaderBindings(rayTracingTextures[1]), renderPipelineBindGroupLayout),
-    engine.initializeBindGroup(buildRenderPipelineShaderBindings(rayTracingTextures[0]), renderPipelineBindGroupLayout),
-];
+const renderPipelineBindGroupLayout = engine.createBindGroupLayout(renderPipelineBindGroupEntries);
+const renderPipeline = engine.createRenderPipeline(renderPipelineBindGroupLayout, vertexShaderCode, fragmentShaderCode);
+const renderPassBindGroups = [1, 0].map(textureIndex => engine.createBindGroup(renderPipelineBindGroupLayout, [
+    { binding: 0, resource: { buffer: renderCallInfoBuffer } },
+    { binding: 1, resource: rayTracingTextures[textureIndex].createView() },
+]));
 
-const computePipelineBindGroupLayout = engine.initializeBindGroupLayout(buildComputePipelineShaderBindings(rayTracingTextures[0], rayTracingTextures[1]));
-const computePipeline = engine.initializeComputePipeline(computePipelineBindGroupLayout, computeShaderCode);
-const computePassBindGroups = [
-    engine.initializeBindGroup(buildComputePipelineShaderBindings(rayTracingTextures[0], rayTracingTextures[1]), computePipelineBindGroupLayout),
-    engine.initializeBindGroup(buildComputePipelineShaderBindings(rayTracingTextures[1], rayTracingTextures[0]), computePipelineBindGroupLayout),
-];
-
+const computePipelineBindGroupLayout = engine.createBindGroupLayout(computePipelineBindGroupEntries);
+const computePipeline = engine.createComputePipeline(computePipelineBindGroupLayout, computeShaderCode);
+const computePassBindGroups = [[0, 1], [1, 0]].map(([sourceTextureIndex, targetTextureIndex]) =>
+    engine.createBindGroup(computePipelineBindGroupLayout, [
+        { binding: 0, resource: { buffer: renderCallInfoBuffer } },
+        { binding: 1, resource: { buffer: sceneBuffer } },
+        { binding: 2, resource: rayTracingTextures[sourceTextureIndex].createView() },
+        { binding: 3, resource: rayTracingTextures[targetTextureIndex].createView() },
+    ]));
 
 const requiredComputePassCount = Math.ceil(SAMPLES_PER_PIXEL / SAMPLES_PER_COMPUTE_PASS);
 let totalComputePassTime = 0;
