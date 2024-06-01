@@ -7,10 +7,7 @@ export class Engine {
     private readonly canvasFormat: GPUTextureFormat;
 
     public static async initialize(canvas: HTMLCanvasElement): Promise<Engine> {
-        const device = await Engine.getGPUDevice().catch(err => {
-            alert(err);
-            throw err;
-        });
+        const device = await Engine.getGPUDevice();
 
         const canvasContext = canvas.getContext('webgpu')!;
         const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
