@@ -10,7 +10,7 @@ type Props = {
 
 const Settings: React.FC<Props> = ({ render }) => {
     const [selectedResolution, setSelectedResolution] = useState<number>(1080);
-    const [selectedSamples, setSelectedSamples] = useState<number>(10);
+    const [selectedSamples, setSelectedSamples] = useState<number>(100);
 
     return (
         <div className={styles.settings}>
