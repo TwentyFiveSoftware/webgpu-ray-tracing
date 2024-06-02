@@ -11,6 +11,14 @@
     border-radius: 20px;
 }
 
+.section a {
+    color: #afc170;
+}
+
+.section p {
+    word-break: break-all;
+}
+
 .title {
     margin-bottom: 20px;
 }

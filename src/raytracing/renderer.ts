@@ -7,6 +7,7 @@ import { RenderCallInfo, Scene } from './scene.ts';
 export const startRayTracing = async (
     canvas: HTMLCanvasElement,
     logMessage: (message: string) => void,
+    abortSignal: AbortSignal,
     width: number,
     height: number,
     samplesPerPixel: number,
@@ -105,6 +106,11 @@ export const startRayTracing = async (
         logMessage('[' + i.toString().padStart(samplesPerPixel.toString().length - 1, ' ') + `/${requiredComputePassCount} | `
             + (i * 100 / requiredComputePassCount).toFixed(1).padStart(5, ' ') + '%] '
             + `Rendered ${samplesPerComputePass} samples/pixel in ${computePassDuration} ms`);
+
+        // abort before render pass to avoid potential conflicts with new render calls
+        if (abortSignal.aborted) {
+            return;
+        }
 
         canvas.width = canvas.clientWidth;
         canvas.height = canvas.clientHeight;
