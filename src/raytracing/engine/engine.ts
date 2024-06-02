@@ -31,7 +31,7 @@ export class Engine {
         }
 
         console.log((await adapter.requestAdapterInfo()));
-        console.log(adapter.toString());
+        console.log(adapter);
         console.log(adapter.limits);
         console.log([...adapter.features]);
 

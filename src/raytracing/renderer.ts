@@ -2,43 +2,35 @@ import vertexShaderCode from './shaders/vertex.wgsl?raw';
 import fragmentShaderCode from './shaders/fragment.wgsl?raw';
 import computeShaderCode from './shaders/compute.wgsl?raw';
 import { Engine } from './engine/engine.ts';
-import { Scene, RenderCallInfo } from './scene.ts';
+import { RenderCallInfo, Scene } from './scene.ts';
 
-// SETTINGS
-const WIDTH = 1920;
-const HEIGHT = 1080;
-const MAX_RAY_TRACE_DEPTH = 50;
-const SAMPLES_PER_PIXEL = 100;
-const SAMPLES_PER_COMPUTE_PASS = 1;
-
-// DOM
-const consoleElement = document.querySelector('pre')!;
-
-const canvas = document.querySelector('canvas')!;
-canvas.width = canvas.clientWidth;
-canvas.height = canvas.clientHeight;
-
-const logMessage = (message: string): void => {
-    console.log(message);
-    consoleElement.appendChild(document.createTextNode(message + '\n'));
-};
-
-// ENGINE / RENDERING
-const main = async () => {
+export const startRayTracing = async (
+    canvas: HTMLCanvasElement,
+    logMessage: (message: string) => void,
+    width: number,
+    height: number,
+    samplesPerPixel: number,
+    samplesPerComputePass: number = 1,
+    maxRayTraceDepth: number = 50,
+) => {
     const engine = await Engine.initialize(canvas);
 
     const rayTracingTextures = [
-        engine.createTexture('rgba32float', WIDTH, HEIGHT, GPUTextureUsage.STORAGE_BINDING),
-        engine.createTexture('rgba32float', WIDTH, HEIGHT, GPUTextureUsage.STORAGE_BINDING),
+        engine.createTexture('rgba32float', width, height, GPUTextureUsage.STORAGE_BINDING),
+        engine.createTexture('rgba32float', width, height, GPUTextureUsage.STORAGE_BINDING),
     ];
 
-    const renderCallInfo = new RenderCallInfo(WIDTH, HEIGHT, MAX_RAY_TRACE_DEPTH, SAMPLES_PER_COMPUTE_PASS);
+    const renderCallInfo = new RenderCallInfo(width, height, maxRayTraceDepth, samplesPerComputePass);
 
     const renderCallInfoBuffer = engine.initializeBuffer(GPUBufferUsage.UNIFORM, renderCallInfo.serializeToBytes());
     const sceneBuffer = engine.initializeBuffer(GPUBufferUsage.STORAGE, Scene.generateRandomScene().serializeToBytes());
 
     const renderPipelineBindGroupEntries: GPUBindGroupLayoutEntry[] = [
-        { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+        {
+            binding: 0,
+            visibility: GPUShaderStage.FRAGMENT,
+            buffer: { type: 'uniform' },
+        },
         {
             binding: 1,
             visibility: GPUShaderStage.FRAGMENT,
@@ -47,8 +39,16 @@ const main = async () => {
     ];
 
     const computePipelineBindGroupEntries: GPUBindGroupLayoutEntry[] = [
-        { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
-        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+        {
+            binding: 0,
+            visibility: GPUShaderStage.COMPUTE,
+            buffer: { type: 'uniform' },
+        },
+        {
+            binding: 1,
+            visibility: GPUShaderStage.COMPUTE,
+            buffer: { type: 'read-only-storage' },
+        },
         {
             binding: 2,
             visibility: GPUShaderStage.COMPUTE,
@@ -86,31 +86,31 @@ const main = async () => {
             { binding: 3, resource: rayTracingTextures[targetTextureIndex].createView() },
         ]));
 
-    const requiredComputePassCount = Math.ceil(SAMPLES_PER_PIXEL / SAMPLES_PER_COMPUTE_PASS);
+    const requiredComputePassCount = Math.ceil(samplesPerPixel / samplesPerComputePass);
     let totalComputePassTime = 0;
 
     for (let i = 1; i <= requiredComputePassCount; ++i) {
-        renderCallInfo.incrementAlreadyComputeSamples(SAMPLES_PER_COMPUTE_PASS);
+        renderCallInfo.incrementAlreadyComputeSamples(samplesPerComputePass);
         engine.updateBufferData(renderCallInfoBuffer, renderCallInfo.serializeToBytes());
 
         const computePassStartTime: number = Date.now();
 
         const COMPUTE_PASS_WORKGROUP_SIZE = 8; // has to match the @workgroup_size in compute shader
         await engine.submit(engine.encodeComputePass(computePipeline, computePassBindGroups[i % 2],
-            Math.ceil(WIDTH / COMPUTE_PASS_WORKGROUP_SIZE), Math.ceil(HEIGHT / COMPUTE_PASS_WORKGROUP_SIZE)));
+            Math.ceil(width / COMPUTE_PASS_WORKGROUP_SIZE), Math.ceil(height / COMPUTE_PASS_WORKGROUP_SIZE)));
 
         const computePassDuration: number = Date.now() - computePassStartTime;
         totalComputePassTime += computePassDuration;
 
-        logMessage('[' + i.toString().padStart(SAMPLES_PER_PIXEL.toString().length - 1, ' ') + `/${requiredComputePassCount} | `
+        logMessage('[' + i.toString().padStart(samplesPerPixel.toString().length - 1, ' ') + `/${requiredComputePassCount} | `
             + (i * 100 / requiredComputePassCount).toFixed(1).padStart(5, ' ') + '%] '
-            + `Rendered ${SAMPLES_PER_COMPUTE_PASS} samples/pixel in ${computePassDuration} ms`);
+            + `Rendered ${samplesPerComputePass} samples/pixel in ${computePassDuration} ms`);
 
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
         await engine.submit(engine.encodeRenderPass(renderPipeline, renderPassBindGroups[i % 2], vertexBuffer));
     }
 
-    logMessage(`\n=> Rendered ${WIDTH}x${HEIGHT} image with ${requiredComputePassCount * SAMPLES_PER_COMPUTE_PASS} samples/pixel ` +
-        `in ${totalComputePassTime} ms (mean ${totalComputePassTime / SAMPLES_PER_PIXEL} ms / sample)`);
+    logMessage(`\n=> Rendered ${width}x${height} image with ${requiredComputePassCount * samplesPerComputePass} samples/pixel ` +
+        `in ${totalComputePassTime} ms (mean ${totalComputePassTime / samplesPerPixel} ms / sample)`);
 };
-
-main().catch(err => alert(err));

@@ -2,56 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WebGPU Ray Tracing</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            color-scheme: dark;
-        }
-
-        body {
-            background-color: #121212;
-            padding: 5%;
-            display: grid;
-            gap: 40px;
-        }
-
-        canvas {
-            display: block;
-            background-color: #171717;
-            width: 100%;
-            height: auto;
-            aspect-ratio: 16 / 9;
-            border-radius: 20px;
-        }
-
-        pre {
-            width: 100%;
-            min-height: 300px;
-            height: 30vh;
-            white-space: pre-wrap;
-            background-color: #171717;
-            padding: 20px;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column-reverse;
-            overflow-y: auto;
-        }
-    </style>
 </head>
 <body>
-
-<canvas></canvas>
-
-<pre></pre>
-
-<script type="module" src="/src/main.ts"></script>
+<div id="root"></div>
+<script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
+
+
+<!--<!doctype html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8" />-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0" />-->
+<!--    <title>WebGPU Ray Tracing</title>-->
+
+<!--    <style>-->
+<!--        * {-->
+<!--            box-sizing: border-box;-->
+<!--            margin: 0;-->
+<!--            padding: 0;-->
+<!--        }-->
+
+<!--        :root {-->
+<!--            color-scheme: dark;-->
+<!--        }-->
+
+<!--        body {-->
+<!--            background-color: #121212;-->
+<!--            padding: 5%;-->
+<!--            display: grid;-->
+<!--            gap: 40px;-->
+<!--        }-->
+
+<!--        canvas {-->
+<!--            display: block;-->
+<!--            background-color: #171717;-->
+<!--            width: 100%;-->
+<!--            height: auto;-->
+<!--            aspect-ratio: 16 / 9;-->
+<!--            border-radius: 20px;-->
+<!--        }-->
+
+<!--        pre {-->
+<!--            width: 100%;-->
+<!--            min-height: 300px;-->
+<!--            height: 30vh;-->
+<!--            white-space: pre-wrap;-->
+<!--            background-color: #171717;-->
+<!--            padding: 20px;-->
+<!--            border-radius: 20px;-->
+<!--            display: flex;-->
+<!--            flex-direction: column-reverse;-->
+<!--            overflow-y: auto;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<canvas></canvas>-->
+
+<!--<pre></pre>-->
+
+<!--<form method="get">-->
+<!--    &lt;!&ndash;        <button onclick="">3840x2160</button>&ndash;&gt;-->
+<!--    &lt;!&ndash;        <button onclick="">2560x1440</button>&ndash;&gt;-->
+<!--    &lt;!&ndash;        <button onclick="">1920x1080</button>&ndash;&gt;-->
+<!--    &lt;!&ndash;        <button onclick="">1280x720</button>&ndash;&gt;-->
+<!--    &lt;!&ndash;        <button onclick="">640x360</button>&ndash;&gt;-->
+<!--    <label>-->
+<!--        <input type="radio" name="resolution" value="3840x2160" />-->
+<!--        3840x2160-->
+<!--    </label>-->
+<!--    <label>-->
+<!--        <input type="radio" name="resolution" value="2560x1440" />-->
+<!--        2560x1440-->
+<!--    </label>-->
+<!--    <label>-->
+<!--        <input type="radio" name="resolution" value="1920x1080" checked />-->
+<!--        1920x1080-->
+<!--    </label>-->
+
+<!--    <br />-->
+<!--    <input type="submit" value="RENDER" />-->
+<!--</form>-->
+
+<!--<script type="module" src="/src/main.ts"></script>-->
+<!--</body>-->
+<!--</html>-->

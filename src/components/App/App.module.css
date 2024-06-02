@@ -1,0 +1,47 @@
+.main {
+    padding: 5%;
+    display: grid;
+    gap: 40px;
+}
+
+.section {
+    width: 100%;
+    background-color: #222222;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.title {
+    margin-bottom: 20px;
+}
+
+.canvas {
+    display: block;
+    background-color: #222222;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+.log {
+    height: 200px;
+    white-space: pre-wrap;
+    display: flex;
+    flex-direction: column-reverse;
+    overflow-y: auto;
+}
+
+@media (max-width: 500px) {
+    .main {
+        padding: 15px;
+    }
+
+    .section, .canvas {
+        border-radius: 10px;
+    }
+}

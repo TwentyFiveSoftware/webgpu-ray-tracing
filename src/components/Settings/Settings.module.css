@@ -1,0 +1,54 @@
+.settings {
+    display: grid;
+    gap: 30px;
+}
+
+.group {
+    display: grid;
+    gap: 10px;
+}
+
+.groupTitle {
+}
+
+.groupOptions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.button {
+    width: max-content;
+    padding: 10px 15px;
+    appearance: none;
+    border: none;
+    outline: none;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    background-color: #383838;
+}
+
+.button:hover {
+    background-color: #4b4b4b;
+}
+
+.buttonSelected {
+    background-color: #afc170;
+    color: #0a0a0a;
+}
+
+.buttonSelected:hover {
+    background-color: #afc170;
+}
+
+@media (max-width: 500px) {
+    .button {
+        width: 100%;
+    }
+}
+
+.renderButton {
+    margin-top: 10px;
+    padding: 15px 30px;
+}
