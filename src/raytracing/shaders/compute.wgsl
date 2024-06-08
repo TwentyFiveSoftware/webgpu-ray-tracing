@@ -8,8 +8,8 @@ struct RenderCallInfo {
 
 @group(0) @binding(0) var<uniform> renderCallInfo: RenderCallInfo;
 @group(0) @binding(1) var<storage, read> scene: Scene;
-@group(0) @binding(2) var summedPixelColorTexture: texture_storage_2d<rgba32float, read>;
-@group(0) @binding(3) var outputTexture: texture_storage_2d<rgba32float, write>;
+@group(0) @binding(2) var<storage, read> pixelInput: array<vec3<f32>>;
+@group(0) @binding(3) var<storage, read_write> pixelOutput: array<vec3<f32>>;
 
 @compute
 @workgroup_size(8, 8)
@@ -22,7 +22,8 @@ fn computeMain(@builtin(global_invocation_id) pixelCoordinate: vec3<u32>) {
 
     let camera: Camera = newCamera(vec3<f32>(12, 2, -3), vec3<f32>(0), 25);
 
-    var summedPixelColor: vec3<f32> = textureLoad(summedPixelColorTexture, pixelCoordinate.xy).xyz;
+    let pixelArrayIndex: u32 = pixelCoordinate.y * renderCallInfo.width + pixelCoordinate.x;
+    var summedPixelColor: vec3<f32> = pixelInput[pixelArrayIndex];
 
     for (var currentSample: u32 = 0; currentSample < renderCallInfo.samplesPerComputePass; currentSample++) {
         let uv = vec2<f32>(
@@ -34,7 +35,7 @@ fn computeMain(@builtin(global_invocation_id) pixelCoordinate: vec3<u32>) {
         summedPixelColor += calculateRayColor(ray);
     }
 
-    textureStore(outputTexture, pixelCoordinate.xy, vec4<f32>(summedPixelColor, 1));
+    pixelOutput[pixelArrayIndex] = summedPixelColor;
 }
 
 fn calculateRayColor(ray: Ray) -> vec3<f32> {
@@ -246,7 +247,7 @@ fn getTextureColor(material: Material, pointToSample: vec3<f32>) -> vec3<f32> {
         return material.colors[0];
 
     } else if material.textureType == TEXTURE_TYPE_CHECKERED {
-        const size = 6;
+        const size: f32 = 6.0;
 
         if sin(size * pointToSample.x) * sin(size * pointToSample.y) * sin(size * pointToSample.z) > 0 {
             return material.colors[0];

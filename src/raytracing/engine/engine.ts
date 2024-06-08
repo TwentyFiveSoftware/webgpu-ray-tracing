@@ -85,18 +85,6 @@ export class Engine {
         return commandEncoder.finish();
     }
 
-    public createTexture(format: GPUTextureFormat, width: number, height: number, usage: GPUTextureUsageFlags): GPUTexture {
-        return this.device.createTexture({
-            dimension: '2d',
-            format: format,
-            size: {
-                width: width,
-                height: height,
-            },
-            usage: usage,
-        });
-    }
-
     public initializeBuffer(usage: GPUBufferUsageFlags, data: ArrayBuffer): GPUBuffer {
         const buffer = this.device.createBuffer({
             size: data.byteLength,

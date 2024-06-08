@@ -7,15 +7,12 @@ struct RenderCallInfo {
 }
 
 @group(0) @binding(0) var<uniform> renderCallInfo: RenderCallInfo;
-@group(0) @binding(1) var rayTracedTexture: texture_storage_2d<rgba32float, read>;
+@group(0) @binding(1) var<storage, read> pixels: array<vec3<f32>>;
 
 @fragment
 fn fragmentMain(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
-    let summedPixelColor: vec4<f32> = textureLoad(rayTracedTexture, vec2<u32>(
-        u32(uv.x * f32(renderCallInfo.width)),
-        u32(uv.y * f32(renderCallInfo.height)),
-    ));
-
-    let pixelColor: vec3<f32> = summedPixelColor.xyz / f32(renderCallInfo.alreadyComputedSamples);
+    let pixelArrayIndex: u32 = u32(uv.y * f32(renderCallInfo.height)) * renderCallInfo.width + u32(uv.x * f32(renderCallInfo.width));
+    let summedPixelColor: vec3<f32> = pixels[pixelArrayIndex];
+    let pixelColor: vec3<f32> = summedPixelColor / f32(renderCallInfo.alreadyComputedSamples);
     return vec4<f32>(sqrt(pixelColor), 1);
 }

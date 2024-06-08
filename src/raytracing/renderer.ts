@@ -16,15 +16,15 @@ export const startRayTracing = async (
 ) => {
     const engine = await Engine.initialize(canvas);
 
-    const rayTracingTextures = [
-        engine.createTexture('rgba32float', width, height, GPUTextureUsage.STORAGE_BINDING),
-        engine.createTexture('rgba32float', width, height, GPUTextureUsage.STORAGE_BINDING),
-    ];
-
     const renderCallInfo = new RenderCallInfo(width, height, maxRayTraceDepth, samplesPerComputePass);
 
     const renderCallInfoBuffer = engine.initializeBuffer(GPUBufferUsage.UNIFORM, renderCallInfo.serializeToBytes());
     const sceneBuffer = engine.initializeBuffer(GPUBufferUsage.STORAGE, Scene.generateRandomScene().serializeToBytes());
+
+    const pixelBuffers = [
+        engine.initializeBuffer(GPUBufferUsage.STORAGE, new Float32Array(width * height * 4)),
+        engine.initializeBuffer(GPUBufferUsage.STORAGE, new Float32Array(width * height * 4)),
+    ];
 
     const renderPipelineBindGroupEntries: GPUBindGroupLayoutEntry[] = [
         {
@@ -35,7 +35,7 @@ export const startRayTracing = async (
         {
             binding: 1,
             visibility: GPUShaderStage.FRAGMENT,
-            storageTexture: { access: 'read-only', format: 'rgba32float' },
+            buffer: { type: 'read-only-storage' },
         },
     ];
 
@@ -53,12 +53,12 @@ export const startRayTracing = async (
         {
             binding: 2,
             visibility: GPUShaderStage.COMPUTE,
-            storageTexture: { access: 'read-only', format: 'rgba32float' },
+            buffer: { type: 'read-only-storage' },
         },
         {
             binding: 3,
             visibility: GPUShaderStage.COMPUTE,
-            storageTexture: { access: 'write-only', format: 'rgba32float' },
+            buffer: { type: 'storage' },
         },
     ];
 
@@ -72,19 +72,19 @@ export const startRayTracing = async (
 
     const renderPipelineBindGroupLayout = engine.createBindGroupLayout(renderPipelineBindGroupEntries);
     const renderPipeline = engine.createRenderPipeline(renderPipelineBindGroupLayout, vertexShaderCode, fragmentShaderCode);
-    const renderPassBindGroups = [1, 0].map(textureIndex => engine.createBindGroup(renderPipelineBindGroupLayout, [
+    const renderPassBindGroups = [1, 0].map(bufferIndex => engine.createBindGroup(renderPipelineBindGroupLayout, [
         { binding: 0, resource: { buffer: renderCallInfoBuffer } },
-        { binding: 1, resource: rayTracingTextures[textureIndex].createView() },
+        { binding: 1, resource: { buffer: pixelBuffers[bufferIndex] } },
     ]));
 
     const computePipelineBindGroupLayout = engine.createBindGroupLayout(computePipelineBindGroupEntries);
     const computePipeline = engine.createComputePipeline(computePipelineBindGroupLayout, computeShaderCode);
-    const computePassBindGroups = [[0, 1], [1, 0]].map(([sourceTextureIndex, targetTextureIndex]) =>
+    const computePassBindGroups = [[0, 1], [1, 0]].map(([sourceBufferIndex, targetBufferIndex]) =>
         engine.createBindGroup(computePipelineBindGroupLayout, [
             { binding: 0, resource: { buffer: renderCallInfoBuffer } },
             { binding: 1, resource: { buffer: sceneBuffer } },
-            { binding: 2, resource: rayTracingTextures[sourceTextureIndex].createView() },
-            { binding: 3, resource: rayTracingTextures[targetTextureIndex].createView() },
+            { binding: 2, resource: { buffer: pixelBuffers[sourceBufferIndex] } },
+            { binding: 3, resource: { buffer: pixelBuffers[targetBufferIndex] } },
         ]));
 
     const requiredComputePassCount = Math.ceil(samplesPerPixel / samplesPerComputePass);
@@ -103,7 +103,7 @@ export const startRayTracing = async (
         const computePassDuration: number = Date.now() - computePassStartTime;
         totalComputePassTime += computePassDuration;
 
-        logMessage('[' + i.toString().padStart(samplesPerPixel.toString().length - 1, ' ') + `/${requiredComputePassCount} | `
+        logMessage('[' + i.toString().padStart(samplesPerPixel.toString().length, ' ') + `/${requiredComputePassCount} | `
             + (i * 100 / requiredComputePassCount).toFixed(1).padStart(5, ' ') + '%] '
             + `Rendered ${samplesPerComputePass} samples/pixel in ${computePassDuration} ms`);
 
