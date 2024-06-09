@@ -192,12 +192,12 @@ struct Material {
     colors: array<vec3<f32>, 2>,
 }
 
-const MATERIAL_TYPE_DIFFUSE = 0;
-const MATERIAL_TYPE_METAL = 1;
-const MATERIAL_TYPE_DIELECTRIC = 2;
+const MATERIAL_TYPE_DIFFUSE: u32 = 0;
+const MATERIAL_TYPE_METAL: u32 = 1;
+const MATERIAL_TYPE_DIELECTRIC: u32 = 2;
 
-const TEXTURE_TYPE_SOLID = 0;
-const TEXTURE_TYPE_CHECKERED = 1;
+const TEXTURE_TYPE_SOLID: u32 = 0;
+const TEXTURE_TYPE_CHECKERED: u32 = 1;
 
 fn scatter(material: Material, ray: Ray, hitRecord: HitRecord) -> ScatterRecord {
     if material.materialType == MATERIAL_TYPE_DIFFUSE {

@@ -105,7 +105,7 @@ export const startRayTracing = async (
 
         logMessage('[' + i.toString().padStart(samplesPerPixel.toString().length, ' ') + `/${requiredComputePassCount} | `
             + (i * 100 / requiredComputePassCount).toFixed(1).padStart(5, ' ') + '%] '
-            + `Rendered ${samplesPerComputePass} samples/pixel in ${computePassDuration} ms`);
+            + `Rendered ${samplesPerComputePass} sample${samplesPerComputePass !== 1 ? 's' : ''}/pixel in ${computePassDuration} ms`);
 
         // abort before render pass to avoid potential conflicts with new render calls
         if (abortSignal.aborted) {
