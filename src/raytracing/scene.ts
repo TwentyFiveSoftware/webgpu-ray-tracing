@@ -12,7 +12,7 @@ export class Scene {
             for (let z = -11; z < 11; z++) {
                 let material: Material;
 
-                let materialRandom = Math.random();
+                const materialRandom = Math.random();
                 if (materialRandom < 0.8) {
                     material = Material.solidDiffuse(Scene.getRandomColor());
                 } else if (materialRandom < 0.95) {
