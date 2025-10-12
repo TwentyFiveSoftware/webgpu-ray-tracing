@@ -28,7 +28,7 @@ export const Settings: React.FC<Props> = ({ render }) => {
             <CardHeader className="text-center">
                 <CardTitle className="text-xl">Settings</CardTitle>
                 <CardDescription>
-                    Configure the ray tracing settings
+                    Configure the Ray Tracer.
                 </CardDescription>
             </CardHeader>
             <CardContent>

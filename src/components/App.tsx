@@ -35,7 +35,7 @@ export const App: React.FC = () => {
     const isWebGPUSupported = !!navigator.gpu;
     if (!isWebGPUSupported) {
         return (
-            <div className="bg-muted flex min-h-svh items-center justify-center p-6 w-full">
+            <div className="flex min-h-svh items-center justify-center p-6 w-full">
                 <Card className="max-w-[850px]">
                     <CardHeader>
                         <CardTitle className="text-xl">WebGPU is not supported on this browser!</CardTitle>
@@ -64,7 +64,7 @@ export const App: React.FC = () => {
     }
 
     return (
-        <div className="bg-muted flex flex-col min-h-svh items-center justify-center gap-6 p-6 w-full">
+        <div className="flex flex-col min-h-svh items-center justify-center gap-6 p-6 w-full">
             {!isRendering && <Settings render={render} />}
 
             <canvas ref={canvasRef} className={
