@@ -30,9 +30,8 @@ export class Engine {
             throw new Error('No appropriate GPUAdapter found (probably WebGPU is disabled)');
         }
 
-        console.log((await adapter.requestAdapterInfo()));
-        console.log(adapter);
-        console.log(adapter.limits);
+        console.log(adapter.info);
+        console.table(adapter.limits);
         console.log([...adapter.features]);
 
         return await adapter.requestDevice();
