@@ -65,7 +65,7 @@ export class Scene {
         return new Vector3(0, 0, 0);
     }
 
-    public serializeToBytes(): ArrayBuffer {
+    public serializeToBytes(): GPUAllowSharedBufferSource {
         const buffer = new Uint8Array(this.spheres.length * 64);
 
         for (let i = 0; i < this.spheres.length; ++i) {

@@ -84,7 +84,7 @@ export class Engine {
         return commandEncoder.finish();
     }
 
-    public initializeBuffer(usage: GPUBufferUsageFlags, data: ArrayBuffer): GPUBuffer {
+    public initializeBuffer(usage: GPUBufferUsageFlags, data: GPUAllowSharedBufferSource): GPUBuffer {
         const buffer = this.device.createBuffer({
             size: data.byteLength,
             usage: GPUBufferUsage.COPY_DST | usage,
@@ -94,7 +94,7 @@ export class Engine {
         return buffer;
     }
 
-    public updateBufferData(buffer: GPUBuffer, data: ArrayBuffer) {
+    public updateBufferData(buffer: GPUBuffer, data: GPUAllowSharedBufferSource) {
         this.device.queue.writeBuffer(buffer, 0, data);
     }
 
