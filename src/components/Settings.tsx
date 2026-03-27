@@ -46,7 +46,8 @@ export const Settings: React.FC<Props> = ({ render }) => {
                                     onValueChange={(value) => setSelectedResolution(Number(value))}
                                 >
                                     {resolutionOptions.map((resolutionHeight) => (
-                                        <FieldLabel htmlFor={`resolution-${resolutionHeight}`} key={resolutionHeight}>
+                                        <FieldLabel htmlFor={`resolution-${resolutionHeight}`} key={resolutionHeight}
+                                                    className="cursor-pointer">
                                             <Field orientation="horizontal">
                                                 <FieldContent>
                                                     <FieldTitle>{`${resolutionHeight * 16 / 9}x${resolutionHeight}`}</FieldTitle>
@@ -74,7 +75,8 @@ export const Settings: React.FC<Props> = ({ render }) => {
                                     onValueChange={(value) => setSelectedSampleCount(Number(value))}
                                 >
                                     {sampleCountOptions.map((samples) => (
-                                        <FieldLabel htmlFor={`samples-${samples}`} key={samples}>
+                                        <FieldLabel htmlFor={`samples-${samples}`} key={samples}
+                                                    className="cursor-pointer">
                                             <Field orientation="horizontal">
                                                 <FieldContent>
                                                     <FieldTitle>{samples}</FieldTitle>
