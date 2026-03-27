@@ -1,8 +1,8 @@
-import vertexShaderCode from "./shaders/vertex.wgsl?raw";
-import fragmentShaderCode from "./shaders/fragment.wgsl?raw";
-import computeShaderCode from "./shaders/compute.wgsl?raw";
 import { Engine } from "./engine/engine.ts";
 import { RenderCallInfo, Scene } from "./scene.ts";
+import computeShaderCode from "./shaders/compute.wgsl?raw";
+import fragmentShaderCode from "./shaders/fragment.wgsl?raw";
+import vertexShaderCode from "./shaders/vertex.wgsl?raw";
 
 export const startRayTracing = async (
 	canvas: HTMLCanvasElement,
@@ -81,7 +81,7 @@ export const startRayTracing = async (
 
 	const vertexBuffer = engine.initializeBuffer(
 		GPUBufferUsage.VERTEX,
-		// rectangle with the size same size as the viewport (coordinates equal clip-space coordinates)
+		// rectangle with the same size as the viewport (coordinates equal clip-space coordinates)
 		new Float32Array([
 			// triangle 1
 			-1, -1, 1, -1, 1, 1,

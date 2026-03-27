@@ -1,5 +1,13 @@
 import type React from "react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button.tsx";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card.tsx";
 import {
 	Field,
 	FieldContent,
@@ -11,15 +19,7 @@ import {
 	FieldSet,
 	FieldTitle,
 } from "@/components/ui/field.tsx";
-import { Button } from "@/components/ui/button.tsx";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group.tsx";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card.tsx";
 
 const resolutionOptions: number[] = [2160, 1440, 1080, 720, 360]; // height
 const sampleCountOptions: number[] = [1, 10, 100, 1000];

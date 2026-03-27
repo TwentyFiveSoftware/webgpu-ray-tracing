@@ -1,5 +1,5 @@
-import { RenderPipeline } from "./renderPipeline.ts";
-import { ComputePipeline } from "./computePipeline.ts";
+import { initializeComputePipeline } from "./computePipeline.ts";
+import { initializeRenderPipeline } from "./renderPipeline.ts";
 
 export class Engine {
 	private readonly device: GPUDevice;
@@ -9,7 +9,11 @@ export class Engine {
 	public static async initialize(canvas: HTMLCanvasElement): Promise<Engine> {
 		const device = await Engine.getGPUDevice();
 
-		const canvasContext = canvas.getContext("webgpu")!;
+		const canvasContext = canvas.getContext("webgpu");
+		if (!canvasContext) {
+			throw new Error("WebGPU is not supported");
+		}
+
 		const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
 
 		canvasContext.configure({
@@ -123,7 +127,7 @@ export class Engine {
 		vertexShaderCode: string,
 		fragmentShaderCode: string,
 	): GPURenderPipeline {
-		return RenderPipeline.initializeRenderPipeline(
+		return initializeRenderPipeline(
 			this.device,
 			this.canvasFormat,
 			bindGroupLayout,
@@ -136,7 +140,7 @@ export class Engine {
 		bindGroupLayout: GPUBindGroupLayout,
 		computeShaderCode: string,
 	): GPUComputePipeline {
-		return ComputePipeline.initializeComputePipeline(
+		return initializeComputePipeline(
 			this.device,
 			bindGroupLayout,
 			computeShaderCode,

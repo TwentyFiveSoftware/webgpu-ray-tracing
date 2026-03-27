@@ -1,14 +1,14 @@
 import type React from "react";
-import { useCallback, useRef, useState } from "react";
-import { Settings } from "./Settings.tsx";
-import { startRayTracing } from "@/raytracing/renderer.ts";
-import { cn } from "@/lib/utils.ts";
+import { useRef, useState } from "react";
 import {
 	Card,
 	CardContent,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card.tsx";
+import { cn } from "@/lib/utils.ts";
+import { startRayTracing } from "@/raytracing/renderer.ts";
+import { Settings } from "./Settings.tsx";
 
 let renderAbortController = new AbortController();
 
@@ -17,33 +17,30 @@ export const App: React.FC = () => {
 	const [logMessages, setLogMessages] = useState<string[]>([]);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
-	const render = useCallback(
-		(width: number, height: number, samples: number) => {
-			if (!canvasRef.current) {
-				return;
-			}
+	const render = (width: number, height: number, samples: number) => {
+		if (!canvasRef.current) {
+			return;
+		}
 
-			setIsRendering(true);
-			setLogMessages([]);
+		setIsRendering(true);
+		setLogMessages([]);
 
-			renderAbortController.abort();
-			renderAbortController = new AbortController();
+		renderAbortController.abort();
+		renderAbortController = new AbortController();
 
-			startRayTracing(
-				canvasRef.current,
-				(message: string) =>
-					setLogMessages((currentLogMessages) => [
-						...currentLogMessages,
-						`${message}\n`,
-					]),
-				renderAbortController.signal,
-				width,
-				height,
-				samples,
-			).catch((err) => alert(err));
-		},
-		[canvasRef, setIsRendering, setLogMessages],
-	);
+		startRayTracing(
+			canvasRef.current,
+			(message: string) =>
+				setLogMessages((currentLogMessages) => [
+					...currentLogMessages,
+					`${message}\n`,
+				]),
+			renderAbortController.signal,
+			width,
+			height,
+			samples,
+		).catch((err) => alert(err));
+	};
 
 	const isWebGPUSupported = !!navigator.gpu;
 	if (!isWebGPUSupported) {

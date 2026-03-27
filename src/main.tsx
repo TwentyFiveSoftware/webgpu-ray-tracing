@@ -1,10 +1,11 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { App } from "./components/App.tsx";
 import "./index.css";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-	<React.StrictMode>
+// biome-ignore lint/style/noNonNullAssertion: react
+createRoot(document.getElementById("root")!).render(
+	<StrictMode>
 		<App />
-	</React.StrictMode>,
+	</StrictMode>,
 );

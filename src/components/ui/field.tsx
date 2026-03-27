@@ -1,10 +1,9 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import type React from "react";
 import { useMemo } from "react";
-import { cva, type VariantProps } from "class-variance-authority";
-
-import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
 	return (
@@ -83,6 +82,7 @@ function Field({
 	...props
 }: React.ComponentProps<"div"> & VariantProps<typeof fieldVariants>) {
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: shadcn
 		<div
 			role="group"
 			data-slot="field"
@@ -207,6 +207,7 @@ function FieldError({
 			<ul className="ml-4 flex list-disc flex-col gap-1">
 				{errors.map(
 					(error, index) =>
+						// biome-ignore lint/suspicious/noArrayIndexKey: shadcn
 						error?.message && <li key={index}>{error.message}</li>,
 				)}
 			</ul>
@@ -231,13 +232,13 @@ function FieldError({
 
 export {
 	Field,
-	FieldLabel,
+	FieldContent,
 	FieldDescription,
 	FieldError,
 	FieldGroup,
+	FieldLabel,
 	FieldLegend,
 	FieldSeparator,
 	FieldSet,
-	FieldContent,
 	FieldTitle,
 };
